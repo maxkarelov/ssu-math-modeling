@@ -1,0 +1,12 @@
+BuildLog.htm
+Debug/
+*/Debug/
+*.ncb
+*.suo
+*.toc
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
