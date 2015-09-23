@@ -106,9 +106,8 @@ class DividedDiffirence:
         n = len(self.xs)
         for k in range(0, n):
             for i in range(0, n):
-                for j in range(i, n):
-                    if j - i == k:
-                        self.__dd_array[i][j] = self.div_diff(i, j)
+                if i + k < n:
+                    self.__dd_array[i][i + k] = self.div_diff(i, i + k)
 
     def div_diff(self, i, j):
         if i > j:
