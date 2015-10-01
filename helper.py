@@ -124,3 +124,49 @@ class DividedDiffirence:
             return self.ys[i]
         else:
             return (self.div_diff(i + 1, j) - self.div_diff(i, j - 1)) / (self.xs[j] - self.xs[i])
+
+
+class CubicSpline:
+    splines = []
+
+    class Spline:
+        def __init__(self, a, b, c, d, x):
+            self.a, self.b, self.c, self.d, self.x = [a, b, c, d, x]
+
+        def __str__(self):
+            return str([self.a, self.b, self.c, self.d, self.x])
+
+    def __init__(self, xs, ys):
+        n = len(xs)
+
+        for i in range(n):
+            self.splines.append(self.Spline(ys[i], 0.0, 0.0, 0.0, xs[i]))
+
+        alpha = beta = [0.0]
+
+        for i in range(1, n - 1):
+            h_i  = xs[i] - xs[i - 1]
+            h_i1 = xs[i + 1] - xs[i]
+            A = h_i
+            C = 2.0 * (h_i + h_i1)
+            B = h_i1
+            F = 6.0 * ((ys[i + 1] - ys[i]) / h_i1 - (ys[i] - ys[i - 1]) / h_i)
+            z = A * alpha[i - 1] + C
+            alpha.append(-B / z)
+            beta.append((F - A * beta[i - 1]) / z)
+
+        for i in range(n - 2, 1, -1):
+            self.splines[i].c = alpha[i] * self.splines[i + 1].c + beta[i]
+
+        for i in range(n - 1, 1, -1):
+            h_i = xs[i] - xs[i - 1]
+
+            self.splines[i].d = (self.splines[i].c - self.splines[i - 1].c) / h_i
+            self.splines[i].b = h_i * (2.0 * self.splines[i].c + self.splines[i - 1].c) / 6.0 + (ys[i] - ys[i - 1]) / h_i
+
+    def __str__(self):
+        s = ""
+        for x in self.splines:
+            s += str(x)
+
+        return s
