@@ -1,4 +1,7 @@
-def print_vertical_table(titles, data, column_width=25, print_lists_to_file=0):
+from collections import defaultdict
+import math
+
+def print_vertical_table(titles, data, column_width=30):
     row_format = "|" + ("{:>" + str(column_width) + "}|") * len(data)
 
     # Reorganize data array
@@ -22,13 +25,6 @@ def print_vertical_table(titles, data, column_width=25, print_lists_to_file=0):
         print row_format.format(*row)
 
     print horiz_sep
-
-    # Writing to file
-    if print_lists_to_file:
-        file = open("values.txt", 'w') 
-        file.write(str(data[0]) + '\n')
-        file.write(str(data[1]))
-        file.close()
 
 def print_table(titles_x, titles_y, data, column_width=5):
     nx = len(titles_x)
@@ -126,47 +122,35 @@ class DividedDiffirence:
             return (self.div_diff(i + 1, j) - self.div_diff(i, j - 1)) / (self.xs[j] - self.xs[i])
 
 
+class Tuple: a, b, c, d, x = [0.0, 0.0, 0.0, 0.0, 0.0]
+
+
 class CubicSpline:
-    splines = []
+    
+    class Dot:
+        def __init__(self, x, y): self.x, self.y = [x, y]
 
-    class Spline:
-        def __init__(self, a, b, c, d, x):
-            self.a, self.b, self.c, self.d, self.x = [a, b, c, d, x]
-
-        def __str__(self):
-            return str([self.a, self.b, self.c, self.d, self.x])
+    splines = defaultdict(lambda: Tuple())
 
     def __init__(self, xs, ys):
-        n = len(xs)
+        dots = [self.Dot(xs[i], ys[i]) for i in range(len(xs))]
 
-        for i in range(n):
-            self.splines.append(self.Spline(ys[i], 0.0, 0.0, 0.0, xs[i]))
+        for i in range(len(dots)): self.splines[i].x, self.splines[i].a = dots[i].x, dots[i].y
 
-        alpha = beta = [0.0]
+        in_step = dots[1].x - dots[0].x
 
-        for i in range(1, n - 1):
-            h_i  = xs[i] - xs[i - 1]
-            h_i1 = xs[i + 1] - xs[i]
-            A = h_i
-            C = 2.0 * (h_i + h_i1)
-            B = h_i1
-            F = 6.0 * ((ys[i + 1] - ys[i]) / h_i1 - (ys[i] - ys[i - 1]) / h_i)
-            z = A * alpha[i - 1] + C
-            alpha.append(-B / z)
-            beta.append((F - A * beta[i - 1]) / z)
+        alpha, beta = [defaultdict(lambda: 0.), defaultdict(lambda: 0.)]
 
-        for i in range(n - 2, 1, -1):
-            self.splines[i].c = alpha[i] * self.splines[i + 1].c + beta[i]
+        for i in range(1, len(dots) - 1):
+            C = 4. * in_step
+            F = 6. * ((dots[i + 1].y - dots[i].y) / in_step - (dots[i].y - dots[i - 1].y) / in_step)
+            z = (in_step * alpha[i - 1] + C)
+            alpha[i] = -in_step / z
+            beta[i] = (F - in_step * beta[i - 1]) / z
 
-        for i in range(n - 1, 1, -1):
-            h_i = xs[i] - xs[i - 1]
+        for i in reversed(range(1, len(dots) - 1)): self.splines[i].c = alpha[i] * self.splines[i + 1].c + beta[i]
 
-            self.splines[i].d = (self.splines[i].c - self.splines[i - 1].c) / h_i
-            self.splines[i].b = h_i * (2.0 * self.splines[i].c + self.splines[i - 1].c) / 6.0 + (ys[i] - ys[i - 1]) / h_i
-
-    def __str__(self):
-        s = ""
-        for x in self.splines:
-            s += str(x)
-
-        return s
+        for i in reversed(range(1, len(dots))):
+            hi = dots[i].x - dots[i-1].x
+            self.splines[i].d = (self.splines[i].c - self.splines[i - 1].c) / hi
+            self.splines[i].b = hi * (2.0 * self.splines[i].c + self.splines[i - 1].c) / 6.0 + (dots[i].y - dots[i-  1].y) / hi

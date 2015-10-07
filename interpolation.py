@@ -1,11 +1,12 @@
 import sys
 import ast
 import math
+import bisect
 
 import matplotlib.pyplot as plt
 
 from helper import *
-from taylor_sin import taylor_sin
+from taylor_sin import taylor4sin
 
 # Lagrange form
 def Lnk(x, xs, ys):
@@ -42,29 +43,44 @@ def Pn(x, xs, ys):
     return newton
 
 # Cubic splines
+cs = 0
 def CubSpl(x, xs, ys):
-    x_n = 0
-    for i in range(1, len(xs)):
-        if xs[i - 1] <= x < xs[i]:
-            x_n = i
-            break
-
-    s = CubicSpline(xs, ys).splines[x_n]
-    dx = x - s.x
-    return s.a + (s.b + (s.c / 2.0 + s.d * dx / 6.0) * dx) * dx
+    distribution = sorted([t[1].x for t in cs.splines.items()])
+    indx = bisect.bisect_left(distribution, x)
+    if indx == len(distribution): return 0
+    dx = x - cs.splines[indx].x
+    return cs.splines[indx].a + cs.splines[indx].b * dx + cs.splines[indx].c * dx ** 2 / 2. + cs.splines[indx].d * dx ** 3 / 6.0
 
 # Main lists
 xs = []
 ys = []
 
+step = 0.01
+fl_dd = 0
+fl_graph = 0
+fl_print = 0
+
 # Reading running args
 form = "lagrange"
 if __name__ == "__main__":
-    if len(sys.argv) == 2:
-        form = str(sys.argv[1])
-    elif len(sys.argv) != 1:
-        print "Too many or too few args!"
-        exit(0)
+    if "lagrange".lower() in sys.argv: form = "lagrange"
+    if "newton".lower()   in sys.argv: form = "newton"
+    if "spline".lower()   in sys.argv: form = "spline"
+
+    if "div_diff".lower() in sys.argv: fl_dd  = 1
+
+    if "print".lower() in sys.argv: fl_print = 1
+    if "plot".lower()  in sys.argv: fl_graph = 1
+
+#    print "Use default step ({})? (y/n)".format(step)
+#    dv = sys.stdin.read(1)
+#
+#    print "-" * 30
+#
+#    if dv.lower() == "n":
+#        step = raw_input("a = {}\n".format(a))
+#
+#        step = float(step)
 
 # File reading
 file = open("values.txt", 'r')
@@ -81,32 +97,31 @@ ys_old = ys
 f = Lnk
 if   form == "lagrange": f = Lnk
 elif form == "newton"  : f = Pn
-elif form == "spline"  : f = CubSpl
-elif form == "div_diff":
-    print DividedDiffirence(xs, ys)
-    exit(0)
+elif form == "spline"  : 
+    f = CubSpl
+    cs = CubicSpline(xs, ys)
 else:
     print "I don't know this type of interpolation :("
     exit(0)
 
 # Calculating
-step = 0.01 #abs(xs[0] - xs[1]) / 16.0
 for x in frange(xs[0], xs[size - 1], step):
     xs_new.append(x)
     ys_new.append(f(x, xs, ys))
 
-#sinys = taylor_sin(4, xs_new)
-#errys = [sinys[i] - ys_new[i] for i in range(0, len(sinys))]
+sinys = taylor4sin(xs_new)
+errys = [sinys[i] - ys_new[i] for i in range(0, len(sinys))]
 
-#for i in range(0, len(sinys)):
-#    print "x = {}, error = {}".format(xs_new[i], errys[i])
+if fl_print:
+    titles = ["Point", "Interpolate", "Expected", "Differece"]
+    data = [xs_new, ys_new, sinys, errys]
+    print_vertical_table(titles, data, 20)
 
-#for x in xs_old:
-#    plt.plot([x, x], [-100, 100])
+if fl_dd:
+    print "Divided difference:"
+    print DividedDiffirence(xs, ys)
 
-# Plot drawing
-plt.plot(xs_old, ys_old)
-plt.plot(xs_new, ys_new)
-#plt.plot(xs_new, errys)
-plt.axis(range(-2, 2))
-plt.show()
+if fl_graph:
+    plt.plot(xs_old, ys_old)
+    plt.plot(xs_new, ys_new)
+    plt.show()
