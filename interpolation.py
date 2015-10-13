@@ -43,6 +43,37 @@ def Pn(x, xs, ys):
     return newton
 
 # Cubic splines
+class CubicSpline:
+    
+    class Dot:
+        def __init__(self, x, y): self.x, self.y = [x, y]
+
+    splines = defaultdict(lambda: Tuple())
+
+    def __init__(self, xs, ys):
+        dots = [self.Dot(xs[i], ys[i]) for i in range(len(xs))]
+
+        for i in range(len(dots)): self.splines[i].x, self.splines[i].a = dots[i].x, dots[i].y
+
+        in_step = dots[1].x - dots[0].x
+
+        alpha, beta = [defaultdict(lambda: 0.0), defaultdict(lambda: 0.0)]
+
+        for i in range(1, len(dots) - 1):
+            C = 4.0 * in_step
+            F = 6.0 * ((dots[i + 1].y - dots[i].y) / in_step - (dots[i].y - dots[i - 1].y) / in_step)
+            z = (in_step * alpha[i - 1] + C)
+            alpha[i] = -in_step / z
+            beta[i] = (F - in_step * beta[i - 1]) / z
+
+        for i in reversed(range(1, len(dots) - 1)): self.splines[i].c = alpha[i] * self.splines[i + 1].c + beta[i]
+
+        for i in reversed(range(1, len(dots))):
+            hi = dots[i].x - dots[i - 1].x
+            self.splines[i].d = (self.splines[i].c - self.splines[i - 1].c) / hi
+            self.splines[i].b = hi * (2.0 * self.splines[i].c + self.splines[i - 1].c) / 6.0 + (dots[i].y - dots[i-  1].y) / hi
+
+            
 cs = 0
 def CubSpl(x, xs, ys):
     distribution = sorted([t[1].x for t in cs.splines.items()])

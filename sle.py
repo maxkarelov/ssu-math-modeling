@@ -1,5 +1,32 @@
 from helper import *
 
+def gauss(A, B):
+    n = len(A)
+
+    A.append(B)
+    data = rotate_2D_list(A)
+    x = [1.0 for i in range(n)] # will be edited and returned
+
+    # Finding an elementary matrix
+    for i in range(n):
+        k0 = data[i][i]
+        lst = data[i]
+
+        for j in range(i + 1, n):
+            k1 = data[j][i]
+            data[j] = map(lambda a, b: a * -k1 / k0 + b, lst, data[j])
+
+    # Finding an answer
+    for i in range(n - 1, -1, -1):
+
+        for j in range(i + 1, n):
+            data[i][n] -= data[i][j] * x[j]
+            data[i][j] = 0
+
+        x[i] = data[i][n] / data[i][i] 
+
+    return x
+
 v = 4
 e = 1.0e-2
 
