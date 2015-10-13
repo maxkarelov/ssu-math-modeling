@@ -23,9 +23,9 @@ def taylor4sin(xs):
 
     return sums
 
-a = -math.pi
-b =  math.pi
-n = 12
+a = 0
+b = 10
+n = 20
 
 fl_w2f = 0
 fl_pri = 0
