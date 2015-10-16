@@ -1,6 +1,15 @@
 from collections import defaultdict
 import math
 
+def normalize_list(lst, key=0):
+    return map(lambda x: x / float(lst[key]), lst)
+
+def get_identity_matrix(size):
+    return [[1 if i == j else 0 for j in range(size)] for i in range(size)]
+
+def reverse_2D_list(data):
+    return [l[::-1] for l in data][::-1]
+
 def rotate_2D_list(data):
     data_new = []
     for i in xrange(len(data[0])):
@@ -21,48 +30,46 @@ def round_list(data, k):
 
         return data_new
 
-def print_vertical_table(titles, data, column_width=30):
-    row_format = "|" + ("{:>" + str(column_width) + "}|") * len(data)
+def print_table(data, titles_x=[], titles_y=[], column_width=5, rnd=0, \
+                horiz_sep=False, vert_sep=False):
 
-    # Reorganize data array
-    data_new = rotate_2D_list(data)
-
-    title = row_format.format(*titles)
-    width_table = len(title)
-    horiz_sep = "-" * width_table
-
-    # Printing
-    print horiz_sep
-    print title
-    print horiz_sep
-
-    for row in data_new:
-        print row_format.format(*row)
-
-    print horiz_sep
-
-def print_table(titles_x, titles_y, data, column_width=5, rnd=0):
     nx = len(data[0])
     ny = len(data)
+
+    ttl_x_fl = len(titles_x) > 0
+    ttl_y_fl = len(titles_y) > 0
 
     if rnd > 0:
         data = round_list(data, rnd)
 
-    row_format = "|" + ("{:>" + str(column_width) + "}|") * (nx + 1)
+    if vert_sep:
+        row_format = "|" + ("{:>" + str(column_width) + "}|") * (nx + ttl_y_fl)
+    else:
+        row_format = ("{:>" + str(column_width) + "}") * (nx + ttl_y_fl)
 
-    title = row_format.format("", *titles_x)
-    width_table = len(title)
-    horiz_sep = "-" * width_table
+    table_width = (column_width + vert_sep) * (nx + ttl_y_fl) + vert_sep
 
-    # Printing
-    print horiz_sep
-    print title
-    print horiz_sep
+    horiz = "-" * table_width
+
+    if ttl_x_fl:
+        if ttl_y_fl:
+            title = row_format.format("", *titles_x)
+        else:
+            title = row_format.format(*titles_x)
+
+        if horiz_sep: print horiz
+        print title
+
+    if horiz_sep: print horiz
 
     for i in range(0, ny):
-        print row_format.format(titles_y[i], *data[i])
+        if ttl_y_fl:
+            print row_format. \
+                    format(titles_y[i] if ttl_y_fl else None, *data[i])
+        else:
+            print row_format.format(*data[i])
 
-    print horiz_sep
+    if horiz_sep: print horiz
 
 def frange(x, y, jump):
     while x < y:
@@ -70,74 +77,8 @@ def frange(x, y, jump):
       x += jump
 
 
-class DividedDiffirence:
-
-    __dd_array = []
-
-    def __init__(self, xs, ys):
-        self.xs = xs
-        self.ys = ys
-
-        n = len(self.xs)
-        for i in range(0, n):
-            self.__dd_array.append([])
-            for j in range(0, n):
-                self.__dd_array[i].append("")
-
-        self.__fill_table()
-
-    def __str__(self):
-        n = len(self.xs)
-        #self.__fill_table()
-
-        titles_x = titles_y = range(0, n)
-        column_width = 5
-        row_format = "|" + ("{:>" + str(column_width) + "}|") * (n + 1)
-
-        title = row_format.format("\\", *titles_x)
-        width_table = len(title)
-        horiz_sep = "-" * width_table
-
-        res  = horiz_sep + '\n'
-        res += title     + '\n'
-        res += horiz_sep + '\n'
-
-        for i in range(0, n):
-            frm = []
-            for x in self.__dd_array[i]:
-                if x != "":
-                    frm.append("%.2f" % x)
-                else:
-                    frm.append("")
-
-            res += row_format.format(titles_y[i], *frm) + '\n'
-
-        res += horiz_sep
-
-        return res
-
-    def __fill_table(self):
-        n = len(self.xs)
-        for k in range(0, n):
-            for i in range(0, n):
-                if i + k < n:
-                    self.__dd_array[i][i + k] = self.div_diff(i, i + k)
-
-    def div_diff(self, i, j):
-        if i > j:
-            print "Error :("
-            return 0
-
-        if self.__dd_array[i][j] == "":
-            return self.dd_func(i, j)
-        else:
-            return self.__dd_array[i][j]
-
-    def dd_func(self, i, j):
-        if i == j:
-            return self.ys[i]
-        else:
-            return (self.div_diff(i + 1, j) - self.div_diff(i, j - 1)) / (self.xs[j] - self.xs[i])
+class Dot:
+    def __init__(self, x, y): self.x, self.y = [x, y]
 
 
 class Tuple: a, b, c, d, x = [0.0, 0.0, 0.0, 0.0, 0.0]
