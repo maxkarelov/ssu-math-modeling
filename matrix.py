@@ -23,24 +23,6 @@ def triangular(matrix):
 
     return matrix
 
-def sle_gauss(A, B):
-    n = len(A)
-
-    data = [A[i] + [B[i]] for i in range(n)]
-    x = range(n) # will be edited and returned
-
-    data = triangular(matrix=data)
-
-    for i in range(n - 1, -1, -1):
-
-        for j in range(i + 1, n):
-            data[i][n] -= data[i][j] * x[j]
-            data[i][j] = 0
-
-        x[i] = data[i][n] / data[i][i] 
-
-    return x
-
 def inverse_matrix(matrix):
     n = len(matrix)
 
@@ -67,6 +49,60 @@ def determinant(matrix):
     return reduce(lambda a, b: a * b, [trng[i][i] for i in range(len(trng))])
 
 
+###################################################################
+## Defining funcions for solving the systems of linear equations ##
+###################################################################
+
+# Gauss' algorithm
+def gauss(A, B):
+    n = len(A)
+
+    data = [A[i] + [B[i]] for i in range(n)]
+    x = range(n) # will be edited and returned
+
+    data = triangular(data)
+
+    for i in range(n - 1, -1, -1):
+
+        for j in range(i + 1, n):
+            data[i][n] -= data[i][j] * x[j]
+            data[i][j] = 0
+
+        x[i] = data[i][n] / data[i][i] 
+
+    return x
+
+# Yacobi's algorithm
+def yacobi(A, B, eps=1.0e-4):
+
+    def yacobi_iter(A, B, X, k):
+        n = len(A)
+
+        # Uncomment line below for the checking variable k
+        # print k
+
+        Xnew = range(n)
+        need_for_new_iteration = False
+
+        for i in range(n):
+            s = 0
+
+            for j in range(n):
+                if i != j:
+                    s += A[i][j] * X[j]
+
+            Xnew[i] = 1 / A[i][i] * (B[i] - s)
+
+            if abs(Xnew[i] - X[i]) > eps:
+                need_for_new_iteration = True
+
+        if need_for_new_iteration:
+            return yacobi_iter(A, B, Xnew, k + 1)
+        else:
+            return Xnew
+
+    return yacobi_iter(A, B, [0] * len(A), 0)
+
 
 #######################################
 ##       Program starts here         ##
@@ -81,15 +117,8 @@ if __name__ == "__main__":
     A = [[lv[i] if i == j else le[i] for j in range(6)] for i in range(6)]
     B = [18, 38.88, 67.68, 104.4, 149.04, 201.6]
 
-    ans = sle_gauss(A, B)
-
     print "Matrix:"
     print_table(data=A, horiz_sep=True, vert_sep=True)
-    print
-
-    print "Column B:"
-    print_table(data=rotate_2D_list([B]), horiz_sep=True, vert_sep=True, \
-                column_width=7)
     print
 
     if "inverse" in sys.argv:
@@ -103,6 +132,15 @@ if __name__ == "__main__":
         print
 
     if "sle" in sys.argv:
+        # ans = gauss(A, B)
+        ans = yacobi(A, B)
+
+        print "Column B:"
+        print_table(data=rotate_2D_list([B]), horiz_sep=True, vert_sep=True, \
+                    column_width=7)
+        print
+
         print "Found column X:"
         print_table(data=rotate_2D_list([ans]), horiz_sep=True, \
-                    vert_sep=True, column_width=7, rnd=5)
+                    vert_sep=True, column_width=16)
+        print
