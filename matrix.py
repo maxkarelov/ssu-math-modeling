@@ -1,5 +1,7 @@
 import sys
 
+from numpy import *
+
 from helper import *
 
 
@@ -58,23 +60,18 @@ def tridiagonal(A, B):
     n = len(A)
 
     data = [A[i] + [B[i]] for i in range(n)]
-    data = triangular(data)
-    data = [normalize_list(data[i], key=i) for i in range(n)]
 
-    x = range(n) # will be edited and returned
-    P = Q = alpha = beta = gamma = delta = range(n)
+    # Start data
+    x = [0] * n
+    P = [0] * n
+    Q = [0] * n
+    alpha = [0] + [data[i + 1][i] for i in range(n - 1)]
+    beta  = [-data[i][i] for i in range(n)]
+    gamma = [data[i][i + 1] for i in range(n)]
+    delta = B
 
-    for i in range(n):
-        if i == 0:
-            alpha[i] = 0
-        elif i < n - 1:
-            alpha[i] = data[i + 1][i]
-
-        beta[i] = -data[i][i]
-        gamma[i] = data[i][i + 1]
-        delta[i] = data[i][n]
-
-    P[0] = gamma[0] / beta[0]
+    # Direct steps
+    P[0] =  gamma[0] / beta[0]
     Q[0] = -delta[0] / beta[0]
 
     for i in range(1, n):
@@ -82,6 +79,7 @@ def tridiagonal(A, B):
         Q[i] = (alpha[i] * Q[i - 1] - delta[i]) / \
                (beta[i] - alpha[i] * P[i - 1])
 
+    # Reverse steps
     x[n - 1] = (alpha[n - 1] * Q[n - 2] - delta[n - 1]) / \
                (beta[n - 1] - alpha[n - 1] * P[n - 2])
 
@@ -138,7 +136,9 @@ def yacobi(A, B, eps=1.0e-4):
         else:
             return Xnew
 
-    return yacobi_iter([0] * len(A), 0)
+    X = [B[i] / A[i][i] for i in range(len(A))]
+
+    return yacobi_iter(X, 0)
 
 # Seidel-Gauss algo
 def seidel(A, B, eps=1.0e-4):
@@ -171,7 +171,39 @@ def seidel(A, B, eps=1.0e-4):
         else:
             return Xnew
 
-    return seidel_iter([0] * len(A), 0)
+    X = [B[i] / A[i][i] for i in range(len(A))]
+
+    return seidel_iter(X, 0)
+
+# Conjugate gradient method
+def cg(A, B, eps=1.0e-12):
+    n = len(A)
+
+    A = array(A)
+    b = array(B)
+
+    x = [[B[i] / A[i][i] for i in range(len(A))]]
+    ksi = [b - dot(A, x[0])]
+    p = [ksi[0]]
+    q = []
+    alpha = []
+    beta = []
+
+    k = 0
+
+    while True:
+        q.append(dot(A, p[k]))
+        alpha.append((ksi[k] * p[k]) / (q[k] * p[k]))
+        x.append(x[k] + alpha[k] * p[k])
+        ksi.append(ksi[k] - alpha[k] * q[k])
+
+        if linalg.norm(ksi[k + 1]) <= eps:
+            return x[k + 1]
+
+        beta.append((ksi[k + 1] * q[k]) / (p[k] * q[k]))
+        p.append(ksi[k + 1] - beta[k] * p[k])
+
+        k += 1
 
 
 #######################################
@@ -181,17 +213,20 @@ def seidel(A, B, eps=1.0e-4):
 if __name__ == "__main__":
     v = 4.0
     e = 1.0e-2
-    lv = [v, v + 2, v + 4, v + 6, v + 8, v + 10]
+
+    n = 3
+    lv = [v + i for i in range(0, n * 2, 2)]
     le = map(lambda x: x * e, lv)
 
-    A = [[lv[i] if i == j else le[i] for j in range(6)] for i in range(6)]
-    B = [18, 38.88, 67.68, 104.4, 149.04, 201.6]
+    A = [[lv[i] if i == j else le[i] for j in range(n)] for i in range(n)]
+    B = dot(array(A), lv)
 
-    # Tridiagonal matrix
-    #  for i in range(len(A)):
-    #     for j in range(len(A)):
-    #        if abs(i - j) > 1:
-    #            A[i][j] = 0
+    # For tridiagonal matrix algorithm
+    if "tridiagonal" in sys.argv: 
+        for i in range(len(A)):
+           for j in range(len(A)):
+              if abs(i - j) > 1:
+                  A[i][j] = 0
 
     print "Matrix:"
     print_table(data=A, horiz_sep=True, vert_sep=True)
@@ -216,6 +251,8 @@ if __name__ == "__main__":
             ans = seidel(A, B)
         elif "tridiagonal" in sys.argv: 
             ans = tridiagonal(A, B)
+        elif "cg" in sys.argv: 
+            ans = cg(A, B)
         else:
             print "Sorry, I don't know this algorithm"
             exit(0)

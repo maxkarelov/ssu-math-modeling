@@ -80,7 +80,7 @@ class DividedDiffirence:
             return self.ys[i]
         else:
             return (self.div_diff(i + 1, j) - self.div_diff(i, j - 1)) / \
-                    (self.xs[j] - self.xs[i])
+                   (self.xs[j] - self.xs[i])
 
 
 #######################################
