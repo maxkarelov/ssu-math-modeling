@@ -219,7 +219,6 @@ if __name__ == "__main__":
     le = map(lambda x: x * e, lv)
 
     A = [[lv[i] if i == j else le[i] for j in range(n)] for i in range(n)]
-    B = dot(array(A), lv)
 
     # For tridiagonal matrix algorithm
     if "tridiagonal" in sys.argv: 
@@ -227,6 +226,8 @@ if __name__ == "__main__":
            for j in range(len(A)):
               if abs(i - j) > 1:
                   A[i][j] = 0
+                  
+    B = dot(array(A), lv)
 
     print "Matrix:"
     print_table(data=A, horiz_sep=True, vert_sep=True)
