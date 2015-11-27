@@ -156,6 +156,7 @@ def CubSpl(x, xs, ys):
     indx = bisect.bisect_left(distribution, x)
     if indx == len(distribution): return 0
     dx = x - splines[indx].x
+
     return splines[indx].a + splines[indx].b * dx + \
         splines[indx].c * dx ** 2 / 2.0 + splines[indx].d * dx ** 3 / 6.0
 
@@ -217,9 +218,10 @@ if __name__ == "__main__":
     errys = [sinys[i] - ys_new[i] for i in range(0, len(sinys))]
 
     if fl_print:
-        titles = ["Point", "Interpolate", "Expected", "Differece"]
+        titles = ["Point", "Interpolate", "Expected", "Difference"]
         data = [xs_new, ys_new, sinys, errys]
-        print_vertical_table(titles, data, 20)
+        print_table(rotate_2D_list(data), titles_x=titles, 
+                    column_width=20, rnd=7, horiz_sep=True, vert_sep=True)
 
     if fl_dd:
         print "Divided difference:"

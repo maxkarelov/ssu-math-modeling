@@ -206,6 +206,13 @@ def cg(A, B, eps=1.0e-12):
         k += 1
 
 
+#######################################################################
+## Defining funcions for solving the systems of non-linear equations ##
+#######################################################################
+
+
+
+
 #######################################
 ##       Program starts here         ##
 #######################################
@@ -214,7 +221,7 @@ if __name__ == "__main__":
     v = 4.0
     e = 1.0e-2
 
-    n = 3
+    n = 10
     lv = [v + i for i in range(0, n * 2, 2)]
     le = map(lambda x: x * e, lv)
 
@@ -267,3 +274,4 @@ if __name__ == "__main__":
         print_table(data=rotate_2D_list([ans]), horiz_sep=True, \
                     vert_sep=True, column_width=16)
         print
+        
