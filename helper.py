@@ -30,6 +30,11 @@ def round_list(data, k):
 
         return data_new
 
+def derivative(f, x0, key=0, delta=1e-9):
+    if not isinstance(x0, list): x0 = [x0]
+    ld = x0[:key] + [x0[key] + delta] + x0[key + 1:]
+    return (f(*ld) - f(*x0)) / delta
+
 def print_table(data, titles_x=[], titles_y=[], column_width=5, rnd=0, \
                 horiz_sep=False, vert_sep=False):
 

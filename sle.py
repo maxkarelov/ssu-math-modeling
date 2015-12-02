@@ -206,13 +206,6 @@ def cg(A, B, eps=1.0e-12):
         k += 1
 
 
-#######################################################################
-## Defining funcions for solving the systems of non-linear equations ##
-#######################################################################
-
-
-
-
 #######################################
 ##       Program starts here         ##
 #######################################
@@ -250,21 +243,19 @@ if __name__ == "__main__":
         print "Determinant of it: ", determinant(A)
         print
 
-    if "sle" in sys.argv:
-        if "gauss" in sys.argv:
-            ans = gauss(A, B)
-        elif "yacobi" in sys.argv:
-            ans = yacobi(A, B)
-        elif "seidel" in sys.argv:
-            ans = seidel(A, B)
-        elif "tridiagonal" in sys.argv: 
-            ans = tridiagonal(A, B)
-        elif "cg" in sys.argv: 
-            ans = cg(A, B)
-        else:
-            print "Sorry, I don't know this algorithm"
-            exit(0)
+    ans = 0
+    if "gauss" in sys.argv:
+        ans = gauss(A, B)
+    elif "yacobi" in sys.argv:
+        ans = yacobi(A, B)
+    elif "seidel" in sys.argv:
+        ans = seidel(A, B)
+    elif "tridiagonal" in sys.argv: 
+        ans = tridiagonal(A, B)
+    elif "cg" in sys.argv: 
+        ans = cg(A, B)
 
+    if ans != 0:
         print "Column B:"
         print_table(data=rotate_2D_list([B]), horiz_sep=True, vert_sep=True, \
                     column_width=7)
